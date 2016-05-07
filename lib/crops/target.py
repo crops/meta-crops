@@ -1,7 +1,7 @@
 from json import JSONEncoder, JSONDecoder
 
 
-class Target(object, JSONEncoder):
+class Target(JSONEncoder):
     """
     Describes a Target for which a toolchain was generated.
     """
@@ -16,6 +16,7 @@ class Target(object, JSONEncoder):
         self.arch = arch
         self.os = os
         self.sysroot = sysroot
+        JSONEncoder.__init__(self, Target)
 
     def default(self, obj):
         """
@@ -31,8 +32,7 @@ class Target(object, JSONEncoder):
                 'os': obj.os,
                 'sysroot': obj.sysroot
             }
-        else:
-            return JSONEncoder.default(self, obj)
+        raise TypeError( repr(obj) + " is not an instance of Target")
 
 
 class TargetJSONDecoder(JSONDecoder):
@@ -50,7 +50,7 @@ class TargetJSONDecoder(JSONDecoder):
         if '__type__' not in d:
             return d
 
-        thistype = d.pop('__type__')ar
+        thistype = d.pop('__type__')
         if thistype == 'Target':
             return Target(**d)
         else:

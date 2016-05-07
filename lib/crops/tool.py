@@ -1,16 +1,18 @@
 from json import JSONEncoder, JSONDecoder
 
 
-class Tool(object, JSONEncoder):
+class Tool(JSONEncoder):
     """
     Describes a tool in a toolchain, e.g. gcc or clang.
     """
 
-    def __init__(self, uid, name, *args, **kwargs):
+    def __init__(self, uid, name, command, *args, **kwargs):
         self.uid = uid
         self.name = name
+        self.command = command
         self.args = args
         self.kwargs = kwargs
+        JSONEncoder.__init__(self, Tool)
 
     def default(self, obj):
         """
@@ -25,8 +27,7 @@ class Tool(object, JSONEncoder):
                 'command': obj.command,
                 'args': obj.args
             }
-        else:
-            return JSONEncoder.default(self, obj)
+        raise TypeError( repr(obj) + " is not an instance of Tool")
 
 
 class ToolJSONDecoder(JSONDecoder):

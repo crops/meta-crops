@@ -1,8 +1,8 @@
 from json import JSONEncoder, JSONDecoder
-from crops import Tool, Host, Target
+import crops
 
 
-class Toolchain(object, JSONEncoder):
+class Toolchain(JSONEncoder):
 
     """
      Describes a Toolchain in an SDK.
@@ -11,6 +11,10 @@ class Toolchain(object, JSONEncoder):
                  vendor, version, distro,
                  cross_compile, sdk_install_dir,
                  host, target, tools):
+        """
+
+        :type target: Target
+        """
         self.uid = uid
         self.name = name
         self.vendor = vendor
@@ -18,20 +22,23 @@ class Toolchain(object, JSONEncoder):
         self.distro = distro
         self.cross_compile = cross_compile
         self.sdk_install_dir = sdk_install_dir
-        if isinstance(host, Host):
-            self.host = Host(**host)
+        if isinstance(host, crops.host.Host):
+            self.host = host
         else:
-            self.host = Host()
-        if isinstance(target, Target):
-            self.target = Target(**target)
+            self.host = crops.host.Host()
+        if isinstance(target, crops.target.Target):
+            self.target = target
         else:
-            self.target = Target()
+            self.target = crops.target.Target()
+        self.tools = []
         if isinstance(tools, list):
             for tool in tools:
-                if isinstance(tool, Tool):
+                if isinstance(tool, crops.tool.Tool):
                     self.tools.append(tool)
         else:
-            self.tools = [Tool()]
+            self.tools = [crops.tool.Tool()]
+        JSONEncoder.__init__(self, Toolchain)
+
 
     def default(self, obj):
         """
@@ -48,12 +55,11 @@ class Toolchain(object, JSONEncoder):
                 'distro': obj.distro,
                 'cross_compile': obj.cross_compile,
                 'sdk_install_dir': obj.sdk_install_dir,
-                'host': obj.host,
-                'target': obj.target,
-                'tools': obj.toos
+                'host': obj.host.default(obj.host),
+                'target': obj.target.default(obj.target),
+                'tools': [tool.default(tool) for tool in obj.tools]
             }
-        else:
-            return JSONEncoder.default(self, obj)
+        raise TypeError( repr(obj) + " is not an instance of Toolchain")
 
 
 class ToolchainJSONDecoder(JSONDecoder):

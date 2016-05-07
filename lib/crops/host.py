@@ -1,7 +1,7 @@
 from json import JSONEncoder, JSONDecoder
 
 
-class Host(object, JSONEncoder):
+class Host(JSONEncoder):
     """
     Describes a host for which a toolchain was generated.
     """
@@ -15,6 +15,7 @@ class Host(object, JSONEncoder):
         self.arch = arch
         self.os = os
         self.sysroot = sysroot
+        JSONEncoder.__init__(self, Host)
 
     def default(self, obj):
         """
@@ -30,8 +31,7 @@ class Host(object, JSONEncoder):
                 'os': obj.os,
                 'sysroot': obj.sysroot
             }
-        else:
-            return JSONEncoder.default(self, obj)
+        raise TypeError( repr(obj) + " is not an instance of Host")
 
 
 class HostJSONDecoder(JSONDecoder):
