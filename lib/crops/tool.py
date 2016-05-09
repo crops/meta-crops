@@ -6,11 +6,14 @@ class Tool(JSONEncoder):
     Describes a tool in a toolchain, e.g. gcc or clang.
     """
 
-    def __init__(self, uid, name, command, *args, **kwargs):
+    def __init__(self, uid, name, command, tool_args, *args, **kwargs):
         self.uid = uid
         self.name = name
         self.command = command
-        self.args = args
+        self.tool_args = []
+        if isinstance(tool_args, list):
+            for arg in tool_args:
+                self.tool_args.append(arg)
         self.kwargs = kwargs
         JSONEncoder.__init__(self, Tool)
 
@@ -25,7 +28,7 @@ class Tool(JSONEncoder):
                 'uid': obj.uid,
                 'name': obj.name,
                 'command': obj.command,
-                'args': obj.args
+                'tool_args': [ arg for arg in obj.tool_args ]
             }
         raise TypeError( repr(obj) + " is not an instance of Tool")
 
