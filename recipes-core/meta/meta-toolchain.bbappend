@@ -3,6 +3,10 @@
 # or
 # RDEPENDS += ' python-jsonpickle"
 
+inherit populate_sdk_base
+
+CROPS_DEPLOY = "${SDK_DEPLOY}/.crops"
+
 # As a design decision, only one toolchain per json file to KISS
 python create_toolchain_json() {
     import io, json
@@ -45,7 +49,11 @@ python create_toolchain_json() {
         d.setVar('TOOLCHAIN_JSON', json.dumps(toolchain, default=toolchain.default).decode('utf-8'))
         # bb.warn(d.getVar('TOOLCHAIN_JSON', True))
 
-    with io.open(u'${SDK_OUTPUT}/${SDKPATH}/toolchain-${REAL_MULTIMACH_TARGET_SYS}.json', 'w') as outfile:
+    crops_dir = os.path.dirname('${SDK_OUTPUT}/${SDKPATH}/.crops/')
+    if not os.path.exists(crops_dir):
+        os.makedirs(crops_dir)
+
+    with io.open(u'${SDK_OUTPUT}/${SDKPATH}/.crops/toolchain-${REAL_MULTIMACH_TARGET_SYS}.json', 'w') as outfile:
         outfile.write(
             # json.dump(obj, outfile) is tempting but
             # finicky about unicode in fp.write(chunk) 
@@ -54,4 +62,12 @@ python create_toolchain_json() {
         )
 }
 
-SDK_POSTPROCESS_COMMAND =+ "create_toolchain_json; "
+fakeroot copy_sdk_json() {
+        # Copy the json file(s) to the tmp/deploy/sdk/.crops directory
+        # when sdk tarball is packaged by a third-party we will need
+        # to create our own *.json tarball for distribution
+        mkdir -p ${CROPS_DEPLOY}
+        cp ${SDK_OUTPUT}/${SDKPATH}/.crops/*.json ${CROPS_DEPLOY}/
+}
+
+SDK_POSTPROCESS_COMMAND =+ "create_toolchain_json; copy_sdk_json; "
