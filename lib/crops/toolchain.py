@@ -8,9 +8,9 @@ class Toolchain(JSONEncoder):
      Describes a Toolchain in an SDK.
     """
     def __init__(self, uid, name,
-                 vendor, version, distro,
+                 vendor, version, distro, distro_version,
                  cross_compile, sdk_install_dir,
-                 host, target, tools):
+                 host, target, tools, envvars):
         """
 
         :type target: Target
@@ -20,6 +20,7 @@ class Toolchain(JSONEncoder):
         self.vendor = vendor
         self.version = version
         self.distro = distro
+        self.distro_version = distro_version
         self.cross_compile = cross_compile
         self.sdk_install_dir = sdk_install_dir
         if isinstance(host, crops.host.Host):
@@ -37,6 +38,14 @@ class Toolchain(JSONEncoder):
                     self.tools.append(tool)
         else:
             self.tools = [crops.tool.Tool()]
+        self.envvars = []
+        if isinstance(envvars, list):
+            for envvar in envvars:
+                if isinstance(envvar,
+                              crops.environment_variable.EnvironmentVariable):
+                    self.envvars.append(envvar)
+        else:
+            self.envars = [crops.environment_variable.EnvironmentVariable()]
         JSONEncoder.__init__(self, Toolchain)
 
 
@@ -53,11 +62,13 @@ class Toolchain(JSONEncoder):
                 'vendor': obj.vendor,
                 'version': obj.version,
                 'distro': obj.distro,
+                'distro_version': obj.distro_version,
                 'cross_compile': obj.cross_compile,
                 'sdk_install_dir': obj.sdk_install_dir,
                 'host': obj.host.default(obj.host),
                 'target': obj.target.default(obj.target),
-                'tools': [tool.default(tool) for tool in obj.tools]
+                'tools': [tool.default(tool) for tool in obj.tools],
+                'envvars': [envvar.default(envvar) for envvar in obj.envvars]
             }
         raise TypeError( repr(obj) + " is not an instance of Toolchain")
 
