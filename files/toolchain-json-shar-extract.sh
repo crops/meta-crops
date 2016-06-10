@@ -192,7 +192,7 @@ tail -n +$payload_offset $0| $SUDO_EXEC tar xJ -C $target_sdk_dir --checkpoint=.
 echo "done"
 
 for json in $target_sdk_dir/.crops/*.json; do
-	sed -e "s/@SDK_INSTALL_DIR@/$target_sdk_dir/" $json
+	sed -e "s|@SDK_INSTALL_DIR@| $target_sdk_dir|" $json > $json.tmp && mv $json.tmp $json
 done
 
 @SDK_POST_INSTALL_COMMAND@
